@@ -1,5 +1,7 @@
-#include <string_view>
+#pragma once
+
 #include <string>
+#include <string_view>
 
 struct Note {
     int pitch;
@@ -22,5 +24,10 @@ struct Note {
 
     std::string getNameAndOctave() const {
         return getName() + getOctave();
+    }
+
+    // Define ordering for sets that notes
+    bool operator<(const Note& other) const {
+        return pitch < other.pitch;
     }
 };

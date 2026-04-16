@@ -17,5 +17,9 @@ add_library(MidiParser
     midi_parser/src/MidiMessage.cpp
 )
 
-add_executable(FingeringMain Main.cpp)
+add_executable(FingeringMain 
+    Main.cpp
+    src/NoteExtractor.cpp
+)
+
 target_link_libraries(FingeringMain MidiParser)
