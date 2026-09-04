@@ -1,27 +1,56 @@
-#include "MidiFile.h"
-#include "NoteExtractor.h"
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <string>
+#include <vector>
 
-int main() {
-    smf::MidiFile midi;
+#include "Engine.h"
 
-    if (!midi.read("../Bach_Cantate_BWV147.mid")) {
-        std::cerr << "Error loading MIDI file." << "\n";
-        return 1;
-    }
+int main()
+{
+    const std::filesystem::path inputDir = "../sample_midis";
+    const std::filesystem::path outputDir = "../tab_outputs";
 
-    midi.linkNotePairs();
+    std::filesystem::create_directories(outputDir);
 
-    // Extract all tracks
-    std::vector<Track> tracks;
-    for (int t = 0; t < midi.getTrackCount(); t++) {
-        tracks.push_back(extractTrack(midi, t));
-    }
+    for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(inputDir))
+    {
+        if (entry.path().extension() != ".mid")
+        {
+            continue;
+        }
 
-    // Print number of time steps for each track
-    for (int t = 0; t < tracks.size(); t++) {
-        std::cout << "Track " << t << ": " << tracks[t].size() << " time steps\n";
+        std::vector<TrackResult> results;
+
+        try
+        {
+            results = optimizeMidiFile(entry.path().string());
+        }
+        catch (const std::runtime_error& e)
+        {
+            std::cerr << e.what() << "\n";
+            continue;
+        }
+
+        for (const TrackResult& result : results)
+        {
+            std::string outputName = entry.path().stem().string() + "_track" + std::to_string(result.trackIndex) + ".tab";
+            std::filesystem::path outputPath = outputDir / outputName;
+
+            std::ofstream file(outputPath);
+
+            if (!file.is_open())
+            {
+                std::cerr << "Error: could not write to file " << outputPath.string() << "\n";
+                continue;
+            }
+
+            file << result.tab;
+            file.close();
+
+            std::cout << "Wrote " << outputPath.string() << "\n";
+        }
     }
 
     return 0;

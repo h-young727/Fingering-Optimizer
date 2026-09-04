@@ -1,2 +1,9 @@
-design.txt
 build/
+tab_outputs/*.tab
+compile_commands.json
+.venv/
+__pycache__/
+*.db
+uploads/
+.pytest_cache/
+.ruff_cache/
